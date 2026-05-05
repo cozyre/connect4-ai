@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+
+# Model binary
+models/*.pkl
+
+# Results (optional — keep if you want to track metrics)
+# results/

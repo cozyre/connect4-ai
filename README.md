@@ -19,7 +19,7 @@ connect4/
 ---
 
 ## Setup
-
+recommended to make env before installing requirements
 ```bash
 git clone https://github.com/cozyre/connect4-ai.git
 cd connect4-ai
