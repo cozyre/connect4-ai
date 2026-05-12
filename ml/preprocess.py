@@ -18,7 +18,7 @@ KAGGLE = 'data/generated_data1.csv'   # Kaggle (already processed CSV)
 
 def load_dataset(path):
     """Load standardized Connect-4 dataset (42 cell columns + label)."""
-    df = pd.read_csv(path)
+    df = pd.read_csv(path, dtype={'label': 'object'})
     
     # Ensure label column exists and is normalized
     if 'label' not in df.columns:
@@ -28,23 +28,35 @@ def load_dataset(path):
             raise ValueError("Dataset must have 'label' or 'target' column")
     
     # Normalize label values
-    df['label'] = df['label'].str.lower().str.strip()
+    df['label'] = df['label'].astype(str).str.lower().str.strip()
     return df
 
 
 def detect_and_load_dataset():
-    """Auto-detect and load the first available dataset."""
-    for path in [UCI, KAGGLE]:
-        if os.path.exists(path):
-            print(f"✓ Found dataset: {path}")
-            return load_dataset(path)
+    """Auto-detect and load datasets, combining both if available."""
+    dfs = []
     
-    raise FileNotFoundError(
-        f"No dataset found. Expected one of:\n"
-        f"  - {UCI}\n"
-        f"  - {KAGGLE}\n"
-        f"Run ml/generate_data.py first or provide a dataset CSV."
-    )
+    # Load Kaggle dataset if exists
+    if os.path.exists(KAGGLE):
+        print(f"✓ Found dataset: {KAGGLE}")
+        dfs.append(load_dataset(KAGGLE))
+    
+    # Load UCI dataset if exists
+    if os.path.exists(UCI):
+        print(f"✓ Found dataset: {UCI}")
+        dfs.append(load_dataset(UCI))
+    
+    if not dfs:
+        raise FileNotFoundError(
+            f"No dataset found. Expected one of:\n"
+            f"  - {UCI}\n"
+            f"  - {KAGGLE}\n"
+            f"Run ml/generate_data.py first or provide a dataset CSV."
+        )
+    
+    combined = pd.concat(dfs, ignore_index=True)
+    print(f"✓ Combined {len(dfs)} dataset(s): {len(combined)} total rows")
+    return combined
 
 
 def preprocess(df, test_size=0.2, random_state=42): # 80/20 data split
@@ -54,10 +66,10 @@ def preprocess(df, test_size=0.2, random_state=42): # 80/20 data split
 
     # Ensure label values are normalized
     if 'label' in df.columns:
-        df['label'] = df['label'].str.lower().str.strip()
+        df['label'] = df['label'].astype(str).str.lower().str.strip()
 
     X = df[[f'cell_{i}' for i in range(42)]].values
-    y = df['label'].values
+    y = np.array(df['label'].tolist(), dtype=str)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state, stratify=y

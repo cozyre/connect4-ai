@@ -7,6 +7,7 @@ venv/
 
 # Model binary
 models/*.pkl
+data/*
 
 # Results (optional — keep if you want to track metrics)
 # results/
